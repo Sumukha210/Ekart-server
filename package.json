@@ -24,6 +24,9 @@
     "typescript": "*"
   },
   "scripts": {
-    "dev": "nodemon src/index.ts"
+    "start": "node index.ts",
+    "dev": "nodemon ./dist/index.js",
+    "watch": "tsc -w",
+    "build": "tsc"
   }
 }
