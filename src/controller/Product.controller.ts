@@ -4,7 +4,7 @@ import { errorResponse, successResponse } from '../utils/response';
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
-    const { sortBy, ratings, priceBelow, brands, categories, limit, skip, featured } = req.query as { [key: string]: string };
+    const { sortBy, ratings, priceBetween, brands, categories, limit, skip, featured } = req.query as { [key: string]: string };
 
     const filter: any = {};
 
@@ -28,9 +28,11 @@ export const getProducts = async (req: Request, res: Response) => {
       filter.featured = { $eq: true };
     }
 
-    if (priceBelow) {
-      const maxPrice = parseInt(priceBelow);
-      filter.price = { $lte: maxPrice };
+    if (priceBetween) {
+      let [min, max]: (number | string)[] = priceBetween.split(',');
+      min = parseInt(min);
+      max = parseInt(max);
+      filter.price = { $lte: max, $gte: min };
     }
 
     if (brands) {
