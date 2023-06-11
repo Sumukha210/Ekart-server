@@ -21,7 +21,7 @@ dbConnection();
 
 app.get('/', (_, res) => {
   const hello = 'Namaste';
-  res.send('Hello, World!' + hello);
+  res.send('Hello, World! 123' + hello);
 });
 
 app.use('/products', productRoutes);

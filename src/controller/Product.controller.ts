@@ -4,26 +4,52 @@ import { errorResponse, successResponse } from '../utils/response';
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
-    const featured = req.query?.featured;
-    const topRated = req.query?.topRated;
-    const limit =
-      ('limit' in req.query && parseInt(req.query.limit as string)) || 10;
-    const skip =
-      ('skip' in req.query && parseInt(req.query.skip as string)) || 0;
+    const { sortBy, ratings, priceBelow, brands, categories, limit, skip, featured } = req.query as { [key: string]: string };
 
-    let query = ProductModel.find();
+    const filter: any = {};
+
+    let sortCriteria = {};
+    if (sortBy === 'popularity') {
+      sortCriteria = { rating: -1 };
+    } else if (sortBy === 'newest') {
+      sortCriteria = { createdAt: -1 };
+    } else if (sortBy === 'priceLowToHigh') {
+      sortCriteria = { price: 1 };
+    } else if (sortBy === 'priceHighToLow') {
+      sortCriteria = { price: -1 };
+    }
+
+    if (ratings) {
+      const minRating = parseInt(ratings);
+      filter.rating = { $gte: minRating };
+    }
 
     if (featured) {
-      query = query.find({ featured: true });
+      filter.featured = { $eq: true };
     }
 
-    if (topRated) {
-      query = query.find().sort({ rating: -1 });
+    if (priceBelow) {
+      const maxPrice = parseInt(priceBelow);
+      filter.price = { $lte: maxPrice };
     }
 
-    const products = await query.skip(skip).limit(limit);
+    if (brands) {
+      const brandList = brands.split(',');
+      filter.brand = { $in: brandList };
+    }
 
-    successResponse(res, products, { skip, limit });
+    if (categories) {
+      const categoryList = categories.split(',');
+      filter.category = { $in: categoryList };
+    }
+
+    const newLimit = parseInt(limit) || 30;
+    const newSkip = parseInt(skip) || 0;
+
+    const total = await ProductModel.countDocuments(filter);
+    const products = await ProductModel.find(filter).sort(sortCriteria).limit(newLimit).skip(newSkip);
+
+    successResponse(res, products, { limit: newLimit, skip: newSkip, total });
   } catch (error) {
     errorResponse(res, error);
   }
@@ -33,6 +59,41 @@ export const getCategories = async (_: Request, res: Response) => {
   try {
     const categories = await ProductModel.distinct('category');
     successResponse(res, categories);
+  } catch (error) {
+    errorResponse(res, error);
+  }
+};
+
+export const getBrands = async (_: Request, res: Response) => {
+  try {
+    const categories = await ProductModel.distinct('brand');
+    successResponse(res, categories);
+  } catch (error) {
+    errorResponse(res, error);
+  }
+};
+
+export const getProductsBySearchedText = async (req: Request, res: Response) => {
+  try {
+    const text = req.params.search;
+    let products = await ProductModel.find(
+      { $text: { $search: text } },
+      {
+        _id: 1,
+        id: 1,
+        title: 1,
+        category: 1,
+        brand: 1,
+        score: { $meta: 'textScore' },
+      }
+    ).lean();
+
+    const modifiedProducts = products.map((product) => ({
+      ...product,
+      title: product.title.replace(new RegExp(`(${text})`, 'gi'), (match) => `<b>${match}</b>`),
+    }));
+
+    successResponse(res, modifiedProducts);
   } catch (error) {
     errorResponse(res, error);
   }
