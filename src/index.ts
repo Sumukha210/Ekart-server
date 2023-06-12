@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import path from 'path';
+// import path from 'path';
 import { dbConnection } from './lib/dbConnection';
 import productRoutes from './routes/Product.routes';
 import cors from 'cors';
@@ -15,7 +15,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.static(path.join(__dirname, 'assets')));
+app.use(express.static('assets'));
+
+console.log();
 
 dbConnection();
 
