@@ -32,7 +32,7 @@ export const getProducts = async (req: Request, res: Response) => {
       let [min, max]: (number | string)[] = priceBetween.split(',');
       min = parseInt(min);
       max = parseInt(max);
-      filter.price = { $lte: max, $gte: min };
+      filter.price = { $lte: max || 5000, $gte: min || 1 };
     }
 
     if (brands) {
