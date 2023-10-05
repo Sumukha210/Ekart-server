@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import ProductModel from '../model/Product.model';
 import { errorResponse, successResponse } from '../utils/response';
+import mongoose from 'mongoose';
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -53,6 +54,46 @@ export const getProducts = async (req: Request, res: Response) => {
 
     successResponse(res, products, { limit: newLimit, skip: newSkip, total });
   } catch (error) {
+    errorResponse(res, error);
+  }
+};
+
+export const getIndividualProductById = async (req: Request, res: Response) => {
+  try {
+    const id = req.params?.id;
+    console.log('id', id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return errorResponse(res, 'Invalid product ID', 404);
+    }
+
+    const product = await ProductModel.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      {
+        $lookup: {
+          from: 'products',
+          let: { category: '$category', brand: '$brand' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $or: [{ $eq: ['$category', '$$category'] }, { $eq: ['$brand', '$$brand'] }],
+                },
+              },
+            },
+            { $limit: 4 },
+          ],
+          as: 'similarProducts',
+        },
+      },
+    ]);
+
+    if (product.length === 0) {
+      return errorResponse(res, 'Product Not found', 404);
+    }
+
+    successResponse(res, product[0]);
+  } catch (error) {
+    console.error(error);
     errorResponse(res, error);
   }
 };
