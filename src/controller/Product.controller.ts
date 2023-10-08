@@ -2,6 +2,15 @@ import { Request, Response } from 'express';
 import ProductModel from '../model/Product.model';
 import { errorResponse, successResponse } from '../utils/response';
 import mongoose from 'mongoose';
+import { productData } from '../utils/products';
+
+export const insertManyProductsToDb = async () => {
+  try {
+    await ProductModel.insertMany(productData);
+  } catch (error) {
+    console.log('Error while feeding', error);
+  }
+};
 
 export const getProducts = async (req: Request, res: Response) => {
   try {

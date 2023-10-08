@@ -1,9 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
-// import path from 'path';
 import { dbConnection } from './lib/dbConnection';
 import productRoutes from './routes/Product.routes';
 import cors from 'cors';
+// import { insertManyProductsToDb } from './controller/Product.controller';
 
 dotenv.config();
 
@@ -28,6 +28,7 @@ app.get('/', (_, res) => {
 
 app.use('/products', productRoutes);
 
+// insertManyProductsToDb();
 app.listen(port, () => {
   console.log(`Server is running on port http://localhost:${port}`);
 });
