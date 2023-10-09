@@ -28,5 +28,8 @@
     "dev": "nodemon --inspect ./dist/index.js",
     "watch": "tsc -w",
     "build": "tsc"
+  },
+  "engines": {
+    "node": ">=14.20.1"
   }
 }

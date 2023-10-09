@@ -19,7 +19,4 @@
     "node_modules",
     "assets"
   ],
-  "engines": {
-    "node": ">=14.20.1"
-  }
 }
